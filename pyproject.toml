@@ -1,7 +1,7 @@
 [project]
 name = "mitmproxy_rules"
 version = "0.1.0"
-description = "Configure mitmproxy rules via a REST API"
+description = "Centralize and organize custom mitmproxy rules for automating traffic manipulation, with a web interface and API for management."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
