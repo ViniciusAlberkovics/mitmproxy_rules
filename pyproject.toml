@@ -1,0 +1,11 @@
+[project]
+name = "mitmproxy_rules"
+version = "0.1.0"
+description = "Configure mitmproxy rules via a REST API"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115.14",
+    "mitmproxy>=12.1.1",
+    "pyyaml>=6.0.2",
+]
