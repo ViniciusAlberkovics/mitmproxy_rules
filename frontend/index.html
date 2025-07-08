@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mitmproxy Rule Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex flex-col items-center py-8">
+    <div class="w-full max-w-3xl bg-white rounded-lg shadow p-6">
+      <h1 class="text-2xl font-bold mb-6 text-center">Mitmproxy Rules</h1>
+      <div class="flex justify-end mb-4">
+        <button
+          id="openModalButton"
+          type="button"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition"
+        >
+          New Rule
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table id="rulesTable" class="min-w-full text-sm mb-8">
+          <thead>
+            <tr>
+              <th class="px-3 py-2 bg-gray-100 font-semibold">#</th>
+              <th class="px-3 py-2 bg-gray-100 font-semibold">Description</th>
+              <th class="px-3 py-2 bg-gray-100 font-semibold">Status</th>
+              <th class="px-3 py-2 bg-gray-100 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Modal -->
+    <div
+      id="modal"
+      class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center hidden"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div
+        class="relative w-full max-w-3xl bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[95vh]"
+      >
+        <button
+          id="closeModalButton"
+          type="button"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+        <form
+          id="ruleForm"
+          class="space-y-6"
+          onsubmit="event.preventDefault(); submitRule();"
+        >
+          <h2 id="formTitle" class="text-xl font-semibold">New Rule</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="description" class="block text-sm font-medium mb-1"
+                >Description</label
+              >
+              <input
+                id="description"
+                class="input input-bordered w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+                placeholder="Description"
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label
+                for="filter"
+                class="block text-sm font-medium mb-1 flex items-center gap-1"
+                >Mitmproxy Filter
+                <a
+                  href="https://docs.mitmproxy.org/stable/concepts/filters/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="ml-1 text-blue-500 hover:text-blue-700"
+                  title="Mitmproxy Filters Documentation"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="inline h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                    />
+                    <line
+                      x1="12"
+                      y1="16"
+                      x2="12"
+                      y2="12"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <circle cx="12" cy="8" r="1" fill="currentColor" />
+                  </svg>
+                </a>
+              </label>
+              <input
+                id="filter"
+                class="input input-bordered w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+                placeholder="Ex: ~u /api/user"
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label for="urlReplace_old" class="block text-sm font-medium mb-1"
+                >URL Replace (optional)</label
+              >
+              <input
+                id="urlReplace_old"
+                class="input input-bordered w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+                placeholder="URL to be replaced"
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label for="urlReplace_new" class="block text-sm font-medium mb-1"
+                >URL Replace (optional)</label
+              >
+              <input
+                id="urlReplace_new"
+                class="input input-bordered w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+                placeholder="New URL value"
+                autocomplete="off"
+              />
+            </div>
+            <div class="flex items-center h-full">
+              <input type="checkbox" id="isActive" class="mr-2" checked />
+              <label for="isActive" class="text-sm font-medium"
+                >Active rule</label
+              >
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="font-semibold mb-2">Request Modifications</h3>
+              <label for="requestHeaders" class="block text-xs font-medium mb-1"
+                >Headers</label
+              >
+              <textarea
+                id="requestHeaders"
+                class="textarea textarea-bordered w-full px-2 py-1 border rounded focus:outline-none focus:ring focus:border-blue-400 mb-2"
+                placeholder='{"Authorization": "Token"}'
+              ></textarea>
+              <label
+                for="requestBodyReplace"
+                class="block text-xs font-medium mb-1"
+                >Body Replace</label
+              >
+              <textarea
+                id="requestBodyReplace"
+                class="textarea textarea-bordered w-full px-2 py-1 border rounded focus:outline-none focus:ring focus:border-blue-400 mb-2"
+                placeholder='[{"from": "abc", "to": "xyz"}]'
+              ></textarea>
+              <label
+                for="requestFullBodyReplace"
+                class="block text-xs font-medium mb-1"
+                >Full Body Replace</label
+              >
+              <textarea
+                id="requestFullBodyReplace"
+                class="textarea textarea-bordered w-full px-2 py-1 border rounded focus:outline-none focus:ring focus:border-blue-400"
+                placeholder='{"message": "replaced"}'
+              ></textarea>
+            </div>
+            <div>
+              <h3 class="font-semibold mb-2">Response Modifications</h3>
+              <label
+                for="responseHeaders"
+                class="block text-xs font-medium mb-1"
+                >Headers</label
+              >
+              <textarea
+                id="responseHeaders"
+                class="textarea textarea-bordered w-full px-2 py-1 border rounded focus:outline-none focus:ring focus:border-blue-400 mb-2"
+                placeholder='{"X-Server": "MockServer"}'
+              ></textarea>
+              <label
+                for="responseBodyReplace"
+                class="block text-xs font-medium mb-1"
+                >Body Replace</label
+              >
+              <textarea
+                id="responseBodyReplace"
+                class="textarea textarea-bordered w-full px-2 py-1 border rounded focus:outline-none focus:ring focus:border-blue-400 mb-2"
+                placeholder='[{"from": "admin", "to": "user"}]'
+              ></textarea>
+              <label
+                for="responseFullBodyReplace"
+                class="block text-xs font-medium mb-1"
+                >Full Body Replace</label
+              >
+              <textarea
+                id="responseFullBodyReplace"
+                class="textarea textarea-bordered w-full px-2 py-1 border rounded focus:outline-none focus:ring focus:border-blue-400"
+                placeholder='{"message": "fully replaced"}'
+              ></textarea>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 justify-end mt-4">
+            <button
+              id="submitButton"
+              type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition"
+            >
+              Add Rule
+            </button>
+            <button
+              id="clearButton"
+              type="button"
+              onclick="clearForm()"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded transition"
+            >
+              Clear Form
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>
