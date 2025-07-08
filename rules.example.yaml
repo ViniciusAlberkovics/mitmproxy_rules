@@ -1,5 +1,0 @@
-rules:
-  - active: true
-    description: Replace Status to OPEN
-    filter: ~m GET https://example.com
-    response_mod: { full_body_replace: '{"status":"OPEN"}' }
