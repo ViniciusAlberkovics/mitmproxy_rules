@@ -22,6 +22,7 @@ class Interceptor:
                 continue
             matcher = flowfilter.parse(rule["filter"])
             if matcher(flow):
+                flow.marked = ":electric_plug:"
                 if "url_replace" in rule:
                     flow.request.url = flow.request.url.replace(rule["url_replace"]['old'], rule["url_replace"]['new'])
                 req_mod = rule.get("request_mod", {})
@@ -43,6 +44,7 @@ class Interceptor:
             ctx.log.info(f"Processing rule: {rule['description']}")
             matcher = flowfilter.parse(rule["filter"])
             if matcher(flow):
+                flow.marked = ":electric_plug:"
                 ctx.log.info(f"Rule matched: {rule['description']}")
                 res_mod = rule.get("response_mod", {})
                 for h in ["cache-control", "expires", "pragma"]:
